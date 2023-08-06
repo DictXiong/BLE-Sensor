@@ -54,7 +54,7 @@
     <!--Report-->
     <characteristic id="report" name="Report" sourceId="" uuid="02e68731-5321-4bd2-b27f-80db5acaa2a0">
       <informativeText>Abstract:  The Floor Number characteristic describes in which floor the device is installed.  </informativeText>
-      <value length="24" type="hex" variable_length="false"/>
+      <value length="16" type="hex" variable_length="false"/>
       <properties read="true" read_requirement="optional"/>
     </characteristic>
   </service>

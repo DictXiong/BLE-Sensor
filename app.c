@@ -50,12 +50,13 @@ uint8_t is_htu21d_end_of_battery = 0;
  * 13:14 gy302 light
  * 15:23 reserved
  */
-uint8_t report_data[24];
+uint8_t report_data[16];
 
 
 void updateData() {
   report_data[0] = 0xFF;
   report_data[1] = 0x12;
+  report_data[15] = 0x23;
   if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
@@ -109,7 +110,7 @@ void updateData() {
     printLog("device_status: %u\r\n", device_status);
   }
   flushLog();
-  gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, 24, report_data);
+  gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, sizeof(report_data), report_data);
 }
 
 
@@ -183,7 +184,7 @@ void appMain(gecko_configuration_t *pconfig)
         gecko_cmd_system_set_tx_power(0);
 
         /* Set adv on all 3 channels */
-        gecko_cmd_le_gap_set_advertise_channel_map(0, 7);
+        //gecko_cmd_le_gap_set_advertise_channel_map(0, 7);
 
         /* Set advertising parameters. 100ms advertisement interval.
          * The first parameter is advertising set handle
@@ -215,7 +216,8 @@ void appMain(gecko_configuration_t *pconfig)
 #if DEBUG_LEVEL
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
 #else
-        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 800, 1000, 5, 2000, 0, 0xFFFF);
+        /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
+        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 700, 760, 5, 3200, 0, 0xFFFF);
 #endif
 
         break;
