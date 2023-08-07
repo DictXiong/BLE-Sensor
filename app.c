@@ -57,6 +57,7 @@ void updateData() {
   report_data[0] = 0xFF;
   report_data[1] = 0x12;
   report_data[15] = 0x23;
+  uint8_t device_status = 0;
   if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
@@ -66,12 +67,14 @@ void updateData() {
     if (ret == 0) {
       report_data[3] = data;
       report_data[4] = data >> 8;
+      device_status |= (1 << 7);
     }
     printLog("temperature: %d %d\r\n", ret, (int16_t)data * 17572 / 65536 - 4685);
     ret = htu21d_read_humidity(I2C0, &data);
     if (ret == 0) {
       report_data[5] = data;
       report_data[6] = data >> 8;
+      device_status |= (1 << 7);
     }
     printLog("humidity: %d %u\r\n", ret, (data) * 1250 / 65536 - 60);
     ret = htu21d_is_end_of_battery(I2C0, &end_of_battery);
@@ -90,6 +93,7 @@ void updateData() {
       report_data[10] = pressure >> 24;
       report_data[11] = temperature;
       report_data[12] = temperature >> 8;
+      device_status |= (1 << 6);
     }
     printLog("%d P=%lu T=%d\r\n", ret, pressure >> 8, temperature);
   }
@@ -101,11 +105,12 @@ void updateData() {
     if (ret == 0) {
       report_data[13] = data;
       report_data[14] = data >> 8;
+      device_status |= (1 << 5);
     }
     printLog("lux: %d %u\r\n", ret, data * 10 / 12);
   }
   {
-    uint8_t device_status = (is_htu21d_online << 7) | (is_bmp280_online << 6) | (is_gy302_online << 5) | (is_htu21d_end_of_battery);
+    device_status |= is_htu21d_end_of_battery;
     report_data[2] = device_status;
     printLog("device_status: %u\r\n", device_status);
   }
