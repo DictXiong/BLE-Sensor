@@ -65,7 +65,7 @@ appPlugin: stack_bridge=false
     <informativeText>Abstract:  This service exposes measurement data from an environmental sensor intended for sports and fitness applications. A wide range of environmental parameters is supported.  Summary:  The Environmental Sensing Service (ESS) exposes measurement data from an environmental sensor intended for sports and fitness applications. A wide range of environmental parameters is supported.  </informativeText>
     <characteristic id="report" name="Report" sourceId="" uuid="02e68731-5321-4bd2-b27f-80db5acaa2a0">
       <informativeText>Abstract:  The Floor Number characteristic describes in which floor the device is installed.  </informativeText>
-      <value length="16" type="hex" variable_length="false"/>
+      <value length="17" type="hex" variable_length="false"/>
       <properties read="true" read_requirement="optional"/>
     </characteristic>
   </service>

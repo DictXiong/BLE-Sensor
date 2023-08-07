@@ -24,6 +24,7 @@
 #include "native_gecko.h"
 #include "gatt_db.h"
 #include "i2cspm.h"
+#include "supply_voltage.h"
 #include "htu21d.h"
 #include "bmp280.h"
 #include "gy302.h"
@@ -38,25 +39,26 @@ static uint8_t boot_to_dfu = 0;
 uint8_t is_htu21d_online = 0;
 uint8_t is_bmp280_online = 0;
 uint8_t is_gy302_online = 0;
-uint8_t is_htu21d_end_of_battery = 0;
+uint8_t is_end_of_battery = 0;
+uint8_t supply_voltage_count = 0;
 
 /* report data
- * 0:1   0xFF 0x12
- * 2     device_status
- * 3:4   htu21d temperature
- * 5:6   htu21d humidity
- * 7:10  bmp280 pressure
- * 11:12 bmp280 temperature
- * 13:14 gy302 light
- * 15    0x23
+ * 0     0x12
+ * 1     device_status
+ * 2:3   supply voltage (*1000)
+ * 4:5   htu21d temperature (raw)
+ * 6:7   htu21d humidity (raw)
+ * 8:11  bmp280 pressure (*25600)
+ * 12:13 bmp280 temperature (*100)
+ * 14:15 gy302 light (*1.2)
+ * 16    0x23
  */
-uint8_t report_data[16];
+uint8_t report_data[17];
 
 
 void updateData() {
-  report_data[0] = 0xFF;
-  report_data[1] = 0x12;
-  report_data[15] = 0x23;
+  report_data[0] = 0x12;
+  report_data[16] = 0x23;
   uint8_t device_status = 0;
   if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
@@ -65,20 +67,20 @@ void updateData() {
     uint8_t end_of_battery;
     ret = htu21d_read_temperature(I2C0, &data);
     if (ret == 0) {
-      report_data[3] = data;
-      report_data[4] = data >> 8;
+      report_data[4] = data;
+      report_data[5] = data >> 8;
       device_status |= (1 << 7);
     }
     printLog("temperature: %d %d\r\n", ret, (int16_t)data * 17572 / 65536 - 4685);
     ret = htu21d_read_humidity(I2C0, &data);
     if (ret == 0) {
-      report_data[5] = data;
-      report_data[6] = data >> 8;
+      report_data[6] = data;
+      report_data[7] = data >> 8;
       device_status |= (1 << 7);
     }
     printLog("humidity: %d %u\r\n", ret, (data) * 1250 / 65536 - 60);
     ret = htu21d_is_end_of_battery(I2C0, &end_of_battery);
-    if (ret == 0) is_htu21d_end_of_battery = end_of_battery;
+    if (ret == 0 && end_of_battery) is_end_of_battery = 1;
   }
   if (is_bmp280_online) {
     printLog("operating bmp280 ...\r\n");
@@ -87,12 +89,12 @@ void updateData() {
     uint32_t pressure;
     ret = bmp280_read_measurements(I2C0, &temperature, &pressure);
     if (ret == 0) {
-      report_data[7] = pressure;
-      report_data[8] = pressure >> 8;
-      report_data[9] = pressure >> 16;
-      report_data[10] = pressure >> 24;
-      report_data[11] = temperature;
-      report_data[12] = temperature >> 8;
+      report_data[8] = pressure;
+      report_data[9] = pressure >> 8;
+      report_data[10] = pressure >> 16;
+      report_data[11] = pressure >> 24;
+      report_data[12] = temperature;
+      report_data[13] = temperature >> 8;
       device_status |= (1 << 6);
     }
     printLog("%d P=%lu T=%d\r\n", ret, pressure >> 8, temperature);
@@ -103,15 +105,27 @@ void updateData() {
     uint16_t data;
     ret = gy302_read_lx(I2C0, &data);
     if (ret == 0) {
-      report_data[13] = data;
-      report_data[14] = data >> 8;
+      report_data[14] = data;
+      report_data[15] = data >> 8;
       device_status |= (1 << 5);
     }
     printLog("lux: %d %u\r\n", ret, data * 10 / 12);
   }
+  // measure supply voltage every 15 min
+  if (supply_voltage_count % 30 == 0) {
+	uint16_t voltage = get_supply_voltage();
+	report_data[2] = voltage;
+	report_data[3] = voltage >> 8;
+	if (voltage <= 2200) {
+    is_end_of_battery = 1;
+	}
+	printLog("supply voltage: %u\r\n", voltage);
+	supply_voltage_count = 0;
+  }
+  supply_voltage_count++;
   {
-    device_status |= is_htu21d_end_of_battery;
-    report_data[2] = device_status;
+    device_status |= is_end_of_battery;
+    report_data[1] = device_status;
     printLog("device_status: %u\r\n", device_status);
   }
   flushLog();
@@ -142,6 +156,9 @@ void appMain(gecko_configuration_t *pconfig)
   i2c_init.i2cRefFreq = 9600;
   i2c_init.i2cMaxFreq = 115200;
   I2CSPM_Init(&i2c_init);
+
+  /* init supply voltage (IADC0) */
+  init_supply_voltage();
 
   /* detect i2c slaves */
   sl_sleeptimer_delay_millisecond(1000);

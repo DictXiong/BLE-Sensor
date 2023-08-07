@@ -43,6 +43,7 @@ void initBoard(void)
   // Enable GPIO clock source
   CMU_ClockEnable(cmuClock_GPIO, true);
   // Place custom board initialization code here.
+  CMU_ClockEnable(cmuClock_IADC0, true);
 }
 
 

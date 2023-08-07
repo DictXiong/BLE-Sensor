@@ -34,6 +34,7 @@
 /* Libraries containing default Gecko configuration values */
 #include "em_emu.h"
 #include "em_cmu.h"
+#include "em_chip.h"
 
 /* Device initialization header */
 #include "hal-config.h"
@@ -106,6 +107,7 @@ static gecko_configuration_t config = {
  */
 int main(void)
 {
+  CHIP_Init();
   /* Initialize device */
   initMcu();
   /* Initialize board */
