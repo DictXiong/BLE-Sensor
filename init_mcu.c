@@ -120,13 +120,14 @@ static void initMcu_clocks(void)
 
   CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_HFXO);
 
-  #warning "WARNING: Use the CMU_LFXOInit() function only if the LFXO hardware is actually present!"
+  // #warning "WARNING: Use the CMU_LFXOInit() function only if the LFXO hardware is actually present!"
+  // Dict Xiong: seems there's no LFXO
   // Initialize LFXO
-  //CMU_LFXOInit_TypeDef lfxoInit = BSP_CLK_LFXO_INIT;
-  //lfxoInit.capTune = BSP_CLK_LFXO_CTUNE;
-  //CMU_LFXOInit(&lfxoInit);
-  // Set system LFXO frequency
-  //SystemLFXOClockSet(BSP_CLK_LFXO_FREQ);
+  // CMU_LFXOInit_TypeDef lfxoInit = BSP_CLK_LFXO_INIT;
+  // lfxoInit.capTune = BSP_CLK_LFXO_CTUNE;
+  // CMU_LFXOInit(&lfxoInit);
+  // // Set system LFXO frequency
+  // SystemLFXOClockSet(BSP_CLK_LFXO_FREQ);
 
   // Select LFRCO as low frequency clock source
   // When using LFRCO, be sure to have .bluetooth.sleep_clock_accuracy set to 500 (ppm)
@@ -135,6 +136,12 @@ static void initMcu_clocks(void)
   CMU_ClockSelectSet(cmuClock_EM4GRPACLK, cmuSelect_LFRCO);
   CMU_ClockSelectSet(cmuClock_WDOG0, cmuSelect_LFRCO);
   CMU_LFRCOSetPrecision(cmuPrecisionHigh);
+
+  // Select all low frequency clock to LFXO
+  // CMU_ClockSelectSet(cmuClock_RTCC, cmuSelect_LFXO);
+  // CMU_ClockSelectSet(cmuClock_EM23GRPACLK, cmuSelect_LFXO);
+  // CMU_ClockSelectSet(cmuClock_EM4GRPACLK, cmuSelect_LFXO);
+  // CMU_ClockSelectSet(cmuClock_WDOG0, cmuSelect_LFXO);
 
 }
 
