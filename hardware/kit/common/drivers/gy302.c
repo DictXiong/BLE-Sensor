@@ -37,9 +37,11 @@ int8_t gy302_command(I2C_TypeDef *i2c, uint8_t command) {
   return (int8_t) ret;
 }
 
-int8_t gy302_read_lx(I2C_TypeDef *i2c, uint16_t *lx) {
-  gy302_command(i2c, GY302_COMMAND_OTH_READ);
+int8_t gy302_request_measure(I2C_TypeDef *i2c) {
+  return gy302_command(i2c, GY302_COMMAND_OTH_READ);
+}
 
+int8_t gy302_read_lx(I2C_TypeDef *i2c, uint16_t *lx) {
   I2C_TransferSeq_TypeDef seq;
   I2C_TransferReturn_TypeDef ret;
   uint8_t i2c_read_data[2];
@@ -48,7 +50,6 @@ int8_t gy302_read_lx(I2C_TypeDef *i2c, uint16_t *lx) {
   seq.buf[0].data = i2c_read_data;
   seq.buf[0].len = 2;
 
-  sl_sleeptimer_delay_millisecond(180);
   ret = I2CSPM_Transfer(i2c, &seq);
   if (ret == i2cTransferDone) {
     *lx = ((uint16_t)i2c_read_data[0] << 8) | i2c_read_data[1];

@@ -34,6 +34,10 @@
 /* Print boot message */
 static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 
+/* Timer handles */
+#define TIMER_HANDLE_REQ_MEAS 0
+#define TIMER_HANDLE_READ_MEAS 1
+
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
 uint8_t is_htu21d_online = 0;
@@ -54,6 +58,12 @@ uint8_t supply_voltage_count = 0;
  * 16    0x23
  */
 uint8_t report_data[17];
+
+
+void requestData() {
+  bmp280_request_measure(I2C0);
+  gy302_request_measure(I2C0);
+}
 
 
 void updateData() {
@@ -220,9 +230,9 @@ void appMain(gecko_configuration_t *pconfig)
 
         /* start measurement timer */
 #if DEBUG_LEVEL
-        gecko_cmd_hardware_set_soft_timer(32768 * 10, 0, 0);
+        gecko_cmd_hardware_set_soft_timer(32768 * 10, TIMER_HANDLE_REQ_MEAS, 0);
 #else
-        gecko_cmd_hardware_set_soft_timer(32768 * 30, 0, 0);
+        gecko_cmd_hardware_set_soft_timer(32768 * 30, TIMER_HANDLE_REQ_MEAS, 0);
 #endif
         break;
 
@@ -280,7 +290,17 @@ void appMain(gecko_configuration_t *pconfig)
         break;
       /* tick timer to refresh measurement */
       case gecko_evt_hardware_soft_timer_id:
-    	  updateData();
+        switch(evt->data.evt_hardware_soft_timer.handle) {
+          case TIMER_HANDLE_REQ_MEAS:
+            requestData();
+            gecko_cmd_hardware_set_soft_timer(32768 * 1, TIMER_HANDLE_READ_MEAS, 1);
+            break;
+          case TIMER_HANDLE_READ_MEAS:
+            updateData();
+            break;
+          default:
+            break;
+        }
     	break;
       /* Add additional event handlers as your application requires */
 

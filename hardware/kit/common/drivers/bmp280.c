@@ -136,9 +136,11 @@ int8_t bmp280_init(I2C_TypeDef *i2c) {
   return i2cTransferDone;
 }
 
+int8_t bmp280_request_measure(I2C_TypeDef *i2c) {
+  return bmp280_write_byte(i2c, BMP2_REG_CTRL_MEAS, 0x25);
+}
+
 int8_t bmp280_read_measurements(I2C_TypeDef *i2c, int16_t *temperature, uint32_t *pressure) {
-  bmp280_write_byte(i2c, BMP2_REG_CTRL_MEAS, 0x25);
-  sl_sleeptimer_delay_millisecond(20);
   uint8_t data_raw[6];
   I2C_TransferReturn_TypeDef ret;
   ret = bmp280_read_data(i2c, data_raw, BMP2_REG_PRES_MSB, 6);
