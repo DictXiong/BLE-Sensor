@@ -26,6 +26,7 @@
 #include "i2cspm.h"
 #include "supply_voltage.h"
 #include "htu21d.h"
+#include "sht4x.h"
 #include "bmp280.h"
 #include "gy302.h"
 
@@ -41,6 +42,7 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
 uint8_t is_htu21d_online = 0;
+uint8_t is_sht4x_online = 0;
 uint8_t is_bmp280_online = 0;
 uint8_t is_gy302_online = 0;
 uint8_t is_end_of_battery = 0;
@@ -61,8 +63,9 @@ uint8_t report_data[17];
 
 
 void requestData() {
-  bmp280_request_measure(I2C0);
-  gy302_request_measure(I2C0);
+  if (is_sht4x_online) sht4x_request_measure(I2C0);
+  if (is_bmp280_online) bmp280_request_measure(I2C0);
+  if (is_gy302_online) gy302_request_measure(I2C0);
 }
 
 
@@ -70,7 +73,21 @@ void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
   uint8_t device_status = 0;
-  if (is_htu21d_online) {
+  if (sht4x_is_online) {
+    printLog("operating sht4x ...\r\n");
+    int8_t ret;
+    uint16_t temperature, humidity;
+    ret = sht4x_read_measurements(I2C0, &temperature, &humidity);
+    if (ret == 0) {
+      report_data[4] = temperature;
+      report_data[5] = temperature >> 8;
+      report_data[6] = humidity;
+      report_data[7] = humidity >> 8;
+      device_status |= (1 << 4);
+    }
+    printLog("temperature: %d %d\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
+    printLog("humidity: %d %d\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
+  } else if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
     uint16_t data;
