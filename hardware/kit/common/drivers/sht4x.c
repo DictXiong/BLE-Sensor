@@ -59,10 +59,10 @@ int8_t sht4x_read_serial(I2C_TypeDef *i2c, uint32_t* serial) {
     uint16_t tmp;
     tmp = (i2c_read_data[0] << 8) | i2c_read_data[1];
     if (!sht4x_crc(tmp, i2c_read_data[2])) return STATUS_CRC_ERR;
-    serial = tmp << 16;
+    *serial = tmp << 16;
     tmp = (i2c_read_data[3] << 8) | i2c_read_data[4];
     if (!sht4x_crc(tmp, i2c_read_data[5])) return STATUS_CRC_ERR;
-    serial = serial | tmp;
+    *serial |= tmp;
   }
   return (int8_t) ret;
 }
@@ -101,8 +101,8 @@ int8_t sht4x_read_measurements(I2C_TypeDef *i2c, uint16_t *temperature, uint16_t
   if (ret == i2cTransferDone) {
     *temperature = (i2c_read_data[0] << 8) | i2c_read_data[1];
     *humidity = (i2c_read_data[3] << 8) | i2c_read_data[4];
-    if (!sht4x_crc(temperature, i2c_read_data[2])) return STATUS_CRC_ERR;
-    if (!sht4x_crc(humidity, i2c_read_data[5])) return STATUS_CRC_ERR;
+    if (!sht4x_crc(*temperature, i2c_read_data[2])) return STATUS_CRC_ERR;
+    if (!sht4x_crc(*humidity, i2c_read_data[5])) return STATUS_CRC_ERR;
   }
 
   return (int8_t) ret;

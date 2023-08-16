@@ -30,6 +30,7 @@
 #include "bg_types.h"
 #include "native_gecko.h"
 #include "gatt_db.h"
+#include "rail.h"
 
 /* Libraries containing default Gecko configuration values */
 #include "em_emu.h"

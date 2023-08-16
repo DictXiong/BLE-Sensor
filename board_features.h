@@ -504,6 +504,7 @@
 // #define FEATURE_LFXO
 // #define FEATURE_EFP
 // #define FEATURE_BOARD_DETECTED
+#define FEATURE_LFXO
 #endif
 
 #endif /* BOARD_FEATURES_H */

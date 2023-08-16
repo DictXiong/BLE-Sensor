@@ -66,6 +66,7 @@ void requestData() {
   if (is_sht4x_online) sht4x_request_measure(I2C0);
   if (is_bmp280_online) bmp280_request_measure(I2C0);
   if (is_gy302_online) gy302_request_measure(I2C0);
+  printLog("----- request data -----\r\n");
 }
 
 
@@ -73,9 +74,17 @@ void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
   uint8_t device_status = 0;
-  if (sht4x_is_online) {
+  if (true) {
     printLog("operating sht4x ...\r\n");
+
+    uint32_t serial;
+
     int8_t ret;
+
+    ret = sht4x_read_serial(I2C0, &serial);
+    printLog("serial: %d %lu\r\n", ret, serial);
+
+
     uint16_t temperature, humidity;
     ret = sht4x_read_measurements(I2C0, &temperature, &humidity);
     if (ret == 0) {
@@ -87,7 +96,9 @@ void updateData() {
     }
     printLog("temperature: %d %d\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
     printLog("humidity: %d %d\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
-  } else if (is_htu21d_online) {
+  }
+  // TODO change to else-if
+  if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
     uint16_t data;
@@ -187,18 +198,24 @@ void appMain(gecko_configuration_t *pconfig)
   /* init supply voltage (IADC0) */
   init_supply_voltage();
 
-  /* detect i2c slaves */
   sl_sleeptimer_delay_millisecond(1000);
+  /* detect i2c slaves: sht4x/htu21d */
+  is_sht4x_online = sht4x_is_online(I2C0);
   is_htu21d_online = htu21d_is_online(I2C0);
-  if (is_htu21d_online) {
+  if (is_sht4x_online) {
+    // sht4x_init(I2C0);
+  } else if (is_htu21d_online) {
     htu21d_init(I2C0);
   }
+  printLog("sht4x is online: %d\r\n", is_sht4x_online);
   printLog("htu21d is online: %d\r\n", is_htu21d_online);
+  /* detect i2c slaves: bmp280 */
   is_bmp280_online = bmp280_is_online(I2C0);
   if (is_bmp280_online) {
     bmp280_init(I2C0);
   }
   printLog("bmp280 is online: %d\r\n", is_bmp280_online);
+  /* detect i2c slaves: gy302 */
   is_gy302_online = gy302_is_online(I2C0);
   printLog("gy302 is online: %d\r\n", is_gy302_online);
   flushLog();
@@ -310,7 +327,7 @@ void appMain(gecko_configuration_t *pconfig)
         switch(evt->data.evt_hardware_soft_timer.handle) {
           case TIMER_HANDLE_REQ_MEAS:
             requestData();
-            gecko_cmd_hardware_set_soft_timer(32768 * 1, TIMER_HANDLE_READ_MEAS, 1);
+            gecko_cmd_hardware_set_soft_timer(32768 >> 2, TIMER_HANDLE_READ_MEAS, 1);
             break;
           case TIMER_HANDLE_READ_MEAS:
             updateData();
