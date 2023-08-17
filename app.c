@@ -63,10 +63,11 @@ uint8_t report_data[17];
 
 
 void requestData() {
+  printLog("----- request data -----\r\n");
   if (is_sht4x_online) sht4x_request_measure(I2C0);
   if (is_bmp280_online) bmp280_request_measure(I2C0);
   if (is_gy302_online) gy302_request_measure(I2C0);
-  printLog("----- request data -----\r\n");
+
 }
 
 
@@ -74,17 +75,9 @@ void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
   uint8_t device_status = 0;
-  if (true) {
+  if (is_sht4x_online) {
     printLog("operating sht4x ...\r\n");
-
-    uint32_t serial;
-
     int8_t ret;
-
-    ret = sht4x_read_serial(I2C0, &serial);
-    printLog("serial: %d %lu\r\n", ret, serial);
-
-
     uint16_t temperature, humidity;
     ret = sht4x_read_measurements(I2C0, &temperature, &humidity);
     if (ret == 0) {
@@ -96,9 +89,7 @@ void updateData() {
     }
     printLog("temperature: %d %d\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
     printLog("humidity: %d %d\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
-  }
-  // TODO change to else-if
-  if (is_htu21d_online) {
+  } else if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
     uint16_t data;
