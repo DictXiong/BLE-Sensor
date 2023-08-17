@@ -179,9 +179,9 @@ void appMain(gecko_configuration_t *pconfig)
   I2CSPM_Init_TypeDef i2c_init;
   i2c_init.port = I2C0;
   i2c_init.sclPort = gpioPortC;
-  i2c_init.sclPin = 0;
+  i2c_init.sclPin = 3;
   i2c_init.sdaPort = gpioPortC;
-  i2c_init.sdaPin = 1;
+  i2c_init.sdaPin = 5;
   i2c_init.i2cRefFreq = 9600;
   i2c_init.i2cMaxFreq = 115200;
   I2CSPM_Init(&i2c_init);
