@@ -36,11 +36,13 @@
 static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 
 /* Timer handles */
-#define TIMER_HANDLE_REQ_MEAS 0
-#define TIMER_HANDLE_READ_MEAS 1
+#define TIMER_HANDLE_REQ_MEAS  (0)
+#define TIMER_HANDLE_READ_MEAS (1)
 
 /* Timings */
-#define MEAS_SUPPLY_VOLTAGE_EVERY 30
+#define MEAS_SUPPLY_VOLTAGE_EVERY   (15)
+#define MEAS_INTERVAL               (32768*60)
+#define READ_MEAS_DELAY             (32768/5)
 
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
@@ -263,7 +265,7 @@ void appMain(gecko_configuration_t *pconfig)
 #if DEBUG_LEVEL
         gecko_cmd_hardware_set_soft_timer(32768 * 10, TIMER_HANDLE_REQ_MEAS, 0);
 #else
-        gecko_cmd_hardware_set_soft_timer(32768 * 60, TIMER_HANDLE_REQ_MEAS, 0);
+        gecko_cmd_hardware_set_soft_timer(MEAS_INTERVAL, TIMER_HANDLE_REQ_MEAS, 0);
 #endif
         break;
 
@@ -324,7 +326,7 @@ void appMain(gecko_configuration_t *pconfig)
         switch(evt->data.evt_hardware_soft_timer.handle) {
           case TIMER_HANDLE_REQ_MEAS:
             requestData();
-            gecko_cmd_hardware_set_soft_timer(32768 * 2 / 10, TIMER_HANDLE_READ_MEAS, 1);
+            gecko_cmd_hardware_set_soft_timer(READ_MEAS_DELAY, TIMER_HANDLE_READ_MEAS, 1);
             break;
           case TIMER_HANDLE_READ_MEAS:
             updateData();
