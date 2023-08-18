@@ -257,7 +257,7 @@ void appMain(gecko_configuration_t *pconfig)
 #if DEBUG_LEVEL
         gecko_cmd_hardware_set_soft_timer(32768 * 10, TIMER_HANDLE_REQ_MEAS, 0);
 #else
-        gecko_cmd_hardware_set_soft_timer(32768 * 30, TIMER_HANDLE_REQ_MEAS, 0);
+        gecko_cmd_hardware_set_soft_timer(32768 * 60, TIMER_HANDLE_REQ_MEAS, 0);
 #endif
         break;
 
@@ -274,7 +274,7 @@ void appMain(gecko_configuration_t *pconfig)
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
 #else
         /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
-        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 700, 760, 5, 3200, 0, 0xFFFF);
+        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 1500, 1600, 5, 3200, 0, 0xFFFF);
 #endif
 
         break;
@@ -318,7 +318,7 @@ void appMain(gecko_configuration_t *pconfig)
         switch(evt->data.evt_hardware_soft_timer.handle) {
           case TIMER_HANDLE_REQ_MEAS:
             requestData();
-            gecko_cmd_hardware_set_soft_timer(32768 >> 2, TIMER_HANDLE_READ_MEAS, 1);
+            gecko_cmd_hardware_set_soft_timer(32768 * 2 / 10, TIMER_HANDLE_READ_MEAS, 1);
             break;
           case TIMER_HANDLE_READ_MEAS:
             updateData();
