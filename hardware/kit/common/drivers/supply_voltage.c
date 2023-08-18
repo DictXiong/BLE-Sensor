@@ -80,11 +80,14 @@ void init_supply_voltage() {
   IADC_initSingle(IADC0, &initSingle, &initSingleInput);
 }
 
-uint16_t get_supply_voltage() {
+void request_supply_voltage() {
+  IADC_command(IADC0, iadcCmdStartSingle);
+}
+
+uint16_t read_supply_voltage() {
   uint16_t ans = 0;
   static volatile IADC_Result_t sample;
 
-  IADC_command(IADC0, iadcCmdStartSingle);
   while ((IADC0->STATUS & IADC_STATUS_SINGLEFIFODV) == 0);
 
   sample = IADC_readSingleResult(IADC0);

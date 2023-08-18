@@ -39,6 +39,9 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 #define TIMER_HANDLE_REQ_MEAS 0
 #define TIMER_HANDLE_READ_MEAS 1
 
+/* Timings */
+#define MEAS_SUPPLY_VOLTAGE_EVERY 30
+
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
 uint8_t is_htu21d_online = 0;
@@ -64,10 +67,12 @@ uint8_t report_data[17];
 
 void requestData() {
   printLog("----- request data -----\r\n");
+  if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
+    request_supply_voltage();
+  }
   if (is_sht4x_online) sht4x_request_measure(I2C0);
   if (is_bmp280_online) bmp280_request_measure(I2C0);
   if (is_gy302_online) gy302_request_measure(I2C0);
-
 }
 
 
@@ -75,6 +80,18 @@ void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
   uint8_t device_status = 0;
+  // measure supply voltage every 15 min
+  if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
+    uint16_t voltage = read_supply_voltage();
+    report_data[2] = voltage;
+    report_data[3] = voltage >> 8;
+    if (voltage <= 2200) {
+      is_end_of_battery = 1;
+    }
+    printLog("supply voltage: %u\r\n", voltage);
+    supply_voltage_count = 0;
+  }
+  supply_voltage_count++;
   if (is_sht4x_online) {
     printLog("operating sht4x ...\r\n");
     int8_t ret;
@@ -140,18 +157,6 @@ void updateData() {
     }
     printLog("lux: %d %u\r\n", ret, data * 10 / 12);
   }
-  // measure supply voltage every 15 min
-  if (supply_voltage_count % 30 == 0) {
-	uint16_t voltage = get_supply_voltage();
-	report_data[2] = voltage;
-	report_data[3] = voltage >> 8;
-	if (voltage <= 2200) {
-    is_end_of_battery = 1;
-	}
-	printLog("supply voltage: %u\r\n", voltage);
-	supply_voltage_count = 0;
-  }
-  supply_voltage_count++;
   {
     device_status |= is_end_of_battery;
     report_data[1] = device_status;
@@ -327,7 +332,7 @@ void appMain(gecko_configuration_t *pconfig)
           default:
             break;
         }
-    	break;
+      break;
       /* Add additional event handlers as your application requires */
 
       default:
