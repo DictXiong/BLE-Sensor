@@ -116,7 +116,9 @@ int main(void)
   initBoard();
   /* Initialize application */
   initApp();
+#if DEBUG_LEVEL
   initVcomEnable();
+#endif
   /* Start application */
   appMain(&config);
 }

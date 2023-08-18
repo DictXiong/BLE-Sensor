@@ -151,7 +151,7 @@ int8_t bmp280_read_measurements(I2C_TypeDef *i2c, int16_t *temperature, uint32_t
   int32_t adc_T = (int32_t) (((uint32_t) data_raw[3] << 12) | ((uint32_t) data_raw[4] << 4) | ((uint32_t) data_raw[5] >> 4));
   int32_t t_fine;
   {
-    int32_t var1, var2, T;
+    int32_t var1, var2;
     var1 = ((((adc_T>>3) - ((int32_t)dig_t1<<1))) * ((int32_t)dig_t2)) >> 11;
     var2 = (((((adc_T>>4) - ((int32_t)dig_t1)) * ((adc_T>>4) - ((int32_t)dig_t1))) >> 12) * ((int32_t)dig_t3)) >> 14;
     t_fine = var1 + var2;

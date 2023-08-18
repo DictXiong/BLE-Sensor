@@ -87,8 +87,8 @@ void updateData() {
       report_data[7] = humidity >> 8;
       device_status |= (1 << 4);
     }
-    printLog("temperature: %d %d\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
-    printLog("humidity: %d %d\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
+    printLog("temperature: %d %ld\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
+    printLog("humidity: %d %ld\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
   } else if (is_htu21d_online) {
     printLog("operating htu21d ...\r\n");
     int8_t ret;
@@ -171,6 +171,7 @@ void appMain(gecko_configuration_t *pconfig)
 
   /* Initialize debug prints. Note: debug prints are off by default. See DEBUG_LEVEL in app.h */
   initLog();
+  printLog("------- boot -------");
 
   /* Initialize stack */
   gecko_init(pconfig);
@@ -182,8 +183,8 @@ void appMain(gecko_configuration_t *pconfig)
   i2c_init.sclPin = 3;
   i2c_init.sdaPort = gpioPortC;
   i2c_init.sdaPin = 5;
-  i2c_init.i2cRefFreq = 9600;
-  i2c_init.i2cMaxFreq = 115200;
+  i2c_init.i2cRefFreq = 10000;
+  i2c_init.i2cMaxFreq = 100000;
   I2CSPM_Init(&i2c_init);
 
   /* init supply voltage (IADC0) */
@@ -274,7 +275,7 @@ void appMain(gecko_configuration_t *pconfig)
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
 #else
         /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
-        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 1500, 1600, 5, 3200, 0, 0xFFFF);
+        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 1600, 1680, 5, 3200, 0, 0xFFFF);
 #endif
 
         break;

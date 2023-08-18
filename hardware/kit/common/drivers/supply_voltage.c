@@ -63,15 +63,15 @@ void init_supply_voltage() {
     IADC0, CLK_ADC_FREQ, 0, iadcCfgModeNormal, init.srcClkPrescale
   );
 
-  // Set conversions to run continuously
+  // Set conversions to run only once
   initSingle.triggerAction = iadcTriggerActionOnce;
 
   // Configure Input sources for single ended conversion
   initSingleInput.posInput = iadcPosInputAvdd;
   initSingleInput.negInput = iadcNegInputGnd;
 
-  // Enable window comparisons on this input
-  initSingleInput.compare = true;
+  // Disable window comparisons on this input
+  initSingleInput.compare = false;
 
   // Initialize IADC
   IADC_init(IADC0, &init, &initAllConfigs);
@@ -88,7 +88,7 @@ uint16_t get_supply_voltage() {
   while ((IADC0->STATUS & IADC_STATUS_SINGLEFIFODV) == 0);
 
   sample = IADC_readSingleResult(IADC0);
-  ans = (sample.data)*4*1210/4095;
   IADC_command(IADC0, iadcCmdStopSingle);
+  ans = (sample.data)*4*1210/4095;
   return ans;
 }

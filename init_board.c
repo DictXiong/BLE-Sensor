@@ -24,9 +24,10 @@
 
 #include "board_features.h"
 #include "em_cmu.h"
+#include "app.h"
 
 
-#warning "WARNING: Custom boards contain no init code in initBoard. Please make sure you have created the init code needed for your board."
+//#warning "WARNING: Custom boards contain no init code in initBoard. Please make sure you have created the init code needed for your board."
 void initBoard(void)
 {
 #if defined(CRYOTIMER_PRESENT)
@@ -36,10 +37,12 @@ void initBoard(void)
   // Enable clock for BURTC
   CMU_ClockEnable(cmuClock_BURTC, true);
 #endif
+#if DEBUG_LEVEL
   // Enable clock for USART0
   CMU_ClockEnable(cmuClock_USART0, true);
   // Enable clock for PRS (for possible USART PRS triggering)
   CMU_ClockEnable(cmuClock_PRS, true);
+#endif
   // Enable GPIO clock source
   CMU_ClockEnable(cmuClock_GPIO, true);
   // Place custom board initialization code here.
