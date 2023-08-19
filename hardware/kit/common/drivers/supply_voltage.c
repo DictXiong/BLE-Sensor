@@ -36,6 +36,9 @@ void init_supply_voltage() {
   IADC_InitSingle_t initSingle = IADC_INITSINGLE_DEFAULT;
   IADC_SingleInput_t initSingleInput = IADC_SINGLEINPUT_DEFAULT;
 
+  // Enable IADC clock
+  CMU_ClockEnable(cmuClock_IADC0, true);
+
   // Reset IADC to reset configuration in case it has been modified
   IADC_reset(IADC0);
 
@@ -47,12 +50,6 @@ void init_supply_voltage() {
 
   // Set the clk_src_adc prescale value here
   init.srcClkPrescale = IADC_calcSrcClkPrescale(IADC0, CLK_SRC_ADC_FREQ, 0);
-
-  // Set upper bound for window compare
-  init.greaterThanEqualThres = AVDD_UPPER_BOUND;
-
-  // Set lower bound for window compare
-  init.lessThanEqualThres = AVDD_LOWER_BOUND;
 
   // Configuration 0 is used by both scan and single conversions by default
   // Use internal 1.2V bandgap as reference
