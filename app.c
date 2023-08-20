@@ -183,40 +183,14 @@ void appMain(gecko_configuration_t *pconfig)
   /* Initialize stack */
   gecko_init(pconfig);
 
-  /* init i2c */
-  I2CSPM_Init_TypeDef i2c_init;
-  i2c_init.port = I2C0;
-  i2c_init.sclPort = gpioPortC;
-  i2c_init.sclPin = 3;
-  i2c_init.sdaPort = gpioPortC;
-  i2c_init.sdaPin = 5;
-  i2c_init.i2cRefFreq = 10000;
-  i2c_init.i2cMaxFreq = 100000;
-  I2CSPM_Init(&i2c_init);
-
   /* init supply voltage (IADC0) */
   init_supply_voltage();
 
-  sl_sleeptimer_delay_millisecond(1000);
-  /* detect i2c slaves: sht4x/htu21d */
-  is_sht4x_online = sht4x_is_online(I2C0);
-  is_htu21d_online = htu21d_is_online(I2C0);
-  if (is_sht4x_online) {
-    // sht4x_init(I2C0);
-  } else if (is_htu21d_online) {
-    htu21d_init(I2C0);
-  }
-  printLog("sht4x is online: %d\r\n", is_sht4x_online);
-  printLog("htu21d is online: %d\r\n", is_htu21d_online);
-  /* detect i2c slaves: bmp280 */
-  is_bmp280_online = bmp280_is_online(I2C0);
-  if (is_bmp280_online) {
-    bmp280_init(I2C0);
-  }
-  printLog("bmp280 is online: %d\r\n", is_bmp280_online);
-  /* detect i2c slaves: gy302 */
-  is_gy302_online = gy302_is_online(I2C0);
-  printLog("gy302 is online: %d\r\n", is_gy302_online);
+  is_sht4x_online = false;
+  is_htu21d_online = false;
+  is_bmp280_online = false;
+  is_gy302_online = false;
+
   flushLog();
 
   /* clear report buffer */
