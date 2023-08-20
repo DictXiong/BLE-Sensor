@@ -23,12 +23,12 @@
 #include "bg_types.h"
 #include "native_gecko.h"
 #include "gatt_db.h"
-#include "i2cspm.h"
+//#include "i2cspm.h"
 #include "supply_voltage.h"
-#include "htu21d.h"
-#include "sht4x.h"
-#include "bmp280.h"
-#include "gy302.h"
+//#include "htu21d.h"
+//#include "sht4x.h"
+//#include "bmp280.h"
+//#include "gy302.h"
 
 #include "app.h"
 
@@ -40,7 +40,7 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 #define TIMER_HANDLE_READ_MEAS (1)
 
 /* Timings */
-#define MEAS_SUPPLY_VOLTAGE_EVERY   (15)
+#define MEAS_SUPPLY_VOLTAGE_EVERY   (3)
 #define MEAS_INTERVAL               (32768*60)
 #define READ_MEAS_DELAY             (32768/5)
 
@@ -72,9 +72,6 @@ void requestData() {
   if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
     request_supply_voltage();
   }
-  if (is_sht4x_online) sht4x_request_measure(I2C0);
-  if (is_bmp280_online) bmp280_request_measure(I2C0);
-  if (is_gy302_online) gy302_request_measure(I2C0);
 }
 
 
@@ -94,71 +91,6 @@ void updateData() {
     supply_voltage_count = 0;
   }
   supply_voltage_count++;
-  if (is_sht4x_online) {
-    printLog("operating sht4x ...\r\n");
-    int8_t ret;
-    uint16_t temperature, humidity;
-    ret = sht4x_read_measurements(I2C0, &temperature, &humidity);
-    if (ret == 0) {
-      report_data[4] = temperature;
-      report_data[5] = temperature >> 8;
-      report_data[6] = humidity;
-      report_data[7] = humidity >> 8;
-      device_status |= (1 << 4);
-    }
-    printLog("temperature: %d %ld\r\n", ret, ((21875 * (int32_t)temperature) >> 13) - 45000);
-    printLog("humidity: %d %ld\r\n", ret, ((15625 * (int32_t)humidity) >> 13) - 6000);
-  } else if (is_htu21d_online) {
-    printLog("operating htu21d ...\r\n");
-    int8_t ret;
-    uint16_t data;
-    uint8_t end_of_battery;
-    ret = htu21d_read_temperature(I2C0, &data);
-    if (ret == 0) {
-      report_data[4] = data;
-      report_data[5] = data >> 8;
-      device_status |= (1 << 7);
-    }
-    printLog("temperature: %d %d\r\n", ret, (int16_t)data * 17572 / 65536 - 4685);
-    ret = htu21d_read_humidity(I2C0, &data);
-    if (ret == 0) {
-      report_data[6] = data;
-      report_data[7] = data >> 8;
-      device_status |= (1 << 7);
-    }
-    printLog("humidity: %d %u\r\n", ret, (data) * 1250 / 65536 - 60);
-    ret = htu21d_is_end_of_battery(I2C0, &end_of_battery);
-    if (ret == 0 && end_of_battery) is_end_of_battery = 1;
-  }
-  if (is_bmp280_online) {
-    printLog("operating bmp280 ...\r\n");
-    int8_t ret;
-    int16_t temperature;
-    uint32_t pressure;
-    ret = bmp280_read_measurements(I2C0, &temperature, &pressure);
-    if (ret == 0) {
-      report_data[8] = pressure;
-      report_data[9] = pressure >> 8;
-      report_data[10] = pressure >> 16;
-      report_data[11] = pressure >> 24;
-      report_data[12] = temperature;
-      report_data[13] = temperature >> 8;
-      device_status |= (1 << 6);
-    }
-    printLog("%d P=%lu T=%d\r\n", ret, pressure >> 8, temperature);
-  }
-  if (is_gy302_online) {
-    printLog("operating gy302 ...\r\n");
-    int8_t ret;
-    uint16_t data;
-    ret = gy302_read_lx(I2C0, &data);
-    if (ret == 0) {
-      report_data[14] = data;
-      report_data[15] = data >> 8;
-      device_status |= (1 << 5);
-    }
-    printLog("lux: %d %u\r\n", ret, data * 10 / 12);
-  }
   {
     device_status |= is_end_of_battery;
     report_data[1] = device_status;
