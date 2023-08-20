@@ -40,7 +40,7 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 #define TIMER_HANDLE_READ_MEAS (1)
 
 /* Timings */
-#define MEAS_SUPPLY_VOLTAGE_EVERY   (15)
+#define MEAS_SUPPLY_VOLTAGE_EVERY   (10)
 #define MEAS_INTERVAL               (32768*60)
 #define READ_MEAS_DELAY             (32768/5)
 
