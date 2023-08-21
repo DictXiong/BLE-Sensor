@@ -29,6 +29,7 @@
 /**************************************************************************//**
  * @brief  IADC Initializer
  *****************************************************************************/
+void init_supply_voltage();
 void init_supply_voltage() {
   // Declare init structs
   IADC_Init_t init = IADC_INIT_DEFAULT;
@@ -78,6 +79,7 @@ void init_supply_voltage() {
 }
 
 void request_supply_voltage() {
+  init_supply_voltage();
   IADC_command(IADC0, iadcCmdStartSingle);
 }
 
@@ -90,5 +92,6 @@ uint16_t read_supply_voltage() {
   sample = IADC_readSingleResult(IADC0);
   IADC_command(IADC0, iadcCmdStopSingle);
   ans = (sample.data)*4*1210/4095;
+  IADC_reset(IADC0);
   return ans;
 }

@@ -11,12 +11,13 @@
 
 
 #define GY302_ADDRESS                  0x46
+#define GY302_COMMAND_POWER_DOWN       0x00
 #define GY302_COMMAND_POWER_ON         0x01
 #define GY302_COMMAND_RESET            0x07
 #define GY302_COMMAND_OTH_READ         0x20
 
 uint8_t gy302_is_online(I2C_TypeDef *i2c) {
-  if (gy302_command(i2c, GY302_COMMAND_POWER_ON) == i2cTransferDone) {
+  if (gy302_command(i2c, GY302_COMMAND_POWER_DOWN) == i2cTransferDone) {
     return 1;
   }
   return 0;

@@ -194,10 +194,7 @@ void appMain(gecko_configuration_t *pconfig)
   i2c_init.i2cMaxFreq = 100000;
   I2CSPM_Init(&i2c_init);
 
-  /* init supply voltage (IADC0) */
-  init_supply_voltage();
-
-  sl_sleeptimer_delay_millisecond(1000);
+  sl_sleeptimer_delay_millisecond(500);
   /* detect i2c slaves: sht4x/htu21d */
   is_sht4x_online = sht4x_is_online(I2C0);
   is_htu21d_online = htu21d_is_online(I2C0);
