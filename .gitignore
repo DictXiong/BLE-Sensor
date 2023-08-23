@@ -35,12 +35,18 @@
 *.i*86
 *.x86_64
 *.hex
+*.bin
+*.axf
+*.s37
+output_gbl/
 
 # Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
+BgBuild_Log.txt
+*.bak
 
 # Kernel Module Compile Results
 *.mod*
@@ -50,3 +56,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# preference
+.settings
+
+# secret
+app-sign-key.pem
