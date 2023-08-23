@@ -34,8 +34,8 @@ appPlugin: stack_bridge=false
     <informativeText>Abstract: The generic_access service contains generic information about the device. All available Characteristics are readonly. </informativeText>
     <characteristic id="device_name" name="Device Name" sourceId="org.bluetooth.characteristic.gap.device_name" uuid="2A00">
       <informativeText/>
-      <value length="10" type="utf-8" variable_length="false">BLE Sensor</value>
-      <properties const="true" const_requirement="optional" read="true" read_requirement="optional"/>
+      <value length="17" type="utf-8" variable_length="false">BLE Sensor 000000</value>
+      <properties read="true" read_requirement="optional"/>
     </characteristic>
     <characteristic name="Appearance" sourceId="org.bluetooth.characteristic.gap.appearance" uuid="2A01">
       <informativeText>Abstract: The external appearance of this device. The values are composed of a category (10-bits) and sub-categories (6-bits). </informativeText>
