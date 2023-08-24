@@ -55,10 +55,10 @@ uint8_t supply_voltage_count = 0;
 
 /* report data
  * 0     0x12
- * 1     device_status
+ * 1     device_status (7: HTU21D, 6: BMP280, 5: GY302, 4: SHT4x, 0: low battery)
  * 2:3   supply voltage (*1000)
- * 4:5   htu21d temperature (raw)
- * 6:7   htu21d humidity (raw)
+ * 4:5   htu21d/sht4x temperature (raw)
+ * 6:7   htu21d/sht4x humidity (raw)
  * 8:11  bmp280 pressure (*25600)
  * 12:13 bmp280 temperature (*100)
  * 14:15 gy302 light (*1.2)
@@ -178,7 +178,7 @@ void appMain(gecko_configuration_t *pconfig)
 
   /* Initialize debug prints. Note: debug prints are off by default. See DEBUG_LEVEL in app.h */
   initLog();
-  printLog("------- boot -------");
+  printLog("------- boot -------\r\n");
 
   /* Initialize stack */
   gecko_init(pconfig);
@@ -254,13 +254,14 @@ void appMain(gecko_configuration_t *pconfig)
         char device_name[13];
         sprintf(device_name, "BLITZ-%2.2X%2.2X%2.2X", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
+        printLog("device name: %s\r\n", device_name);
 
         /* Set advertising parameters. 100ms advertisement interval.
          * The first parameter is advertising set handle
          * The next two parameters are minimum and maximum advertising interval, both in
          * units of (milliseconds * 1.6).
          * The last two parameters are duration and maxevents left as default. */
-        gecko_cmd_le_gap_set_advertise_timing(0, 3200, 3280, 0, 0);
+        gecko_cmd_le_gap_set_advertise_timing(0, 2560, 3200, 0, 0);
 
         /* Start general advertising and enable connections. */
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);

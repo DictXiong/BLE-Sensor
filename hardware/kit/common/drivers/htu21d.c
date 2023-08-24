@@ -1,13 +1,10 @@
 /*
  * htu21d.c
  *
- *  Created on: 2023Äê8ÔÂ4ÈÕ
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
-#include <stddef.h>
 #include <assert.h>
-#include "i2cspm.h"
 
 #include "htu21d.h"
 

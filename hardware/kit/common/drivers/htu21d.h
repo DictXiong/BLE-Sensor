@@ -1,12 +1,13 @@
 /*
  * htu21d.h
  *
- *  Created on: 2023��8��4��
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
 #ifndef HARDWARE_KIT_COMMON_DRIVERS_HTU21D_H_
 #define HARDWARE_KIT_COMMON_DRIVERS_HTU21D_H_
+
+#include "i2cspm.h"
 
 uint8_t htu21d_is_online(I2C_TypeDef *i2c);
 int8_t htu21d_read_userreg(I2C_TypeDef *i2c, uint8_t *userreg);

@@ -1,12 +1,13 @@
 /*
  * bmp280.h
  *
- *  Created on: 2023��8��5��
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
 #ifndef HARDWARE_KIT_COMMON_DRIVERS_BMP280_H_
 #define HARDWARE_KIT_COMMON_DRIVERS_BMP280_H_
+
+#include "i2cspm.h"
 
 int8_t bmp280_read_data(I2C_TypeDef *i2c, uint8_t *data_raw, uint8_t addr, uint8_t len);
 int8_t bmp280_write_byte(I2C_TypeDef *i2c, uint8_t addr, uint8_t data);

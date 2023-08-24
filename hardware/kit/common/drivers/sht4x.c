@@ -1,12 +1,8 @@
 /*
  * sht4x.c
  *
- *  Created on: 2023Äê8ÔÂ5ÈÕ
- *      Author: me
+ *      Author: me@beardic.cn
  */
-#include <stddef.h>
-#include "i2cspm.h"
-
 #include "sht4x.h"
 
 #define SHT4X_ADDRESS 0x88

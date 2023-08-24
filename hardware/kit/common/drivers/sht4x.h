@@ -1,12 +1,13 @@
 /*
  * sht4x.h
  *
- *  Created on:
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
 #ifndef HARDWARE_KIT_COMMON_DRIVERS_SHT4X_H_
 #define HARDWARE_KIT_COMMON_DRIVERS_SHT4X_H_
+
+#include "i2cspm.h"
 
 #define STATUS_CRC_ERR 110
 
