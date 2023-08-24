@@ -251,8 +251,8 @@ void appMain(gecko_configuration_t *pconfig)
         /* init device name */
         bd_addr local_addr;
         local_addr = gecko_cmd_system_get_bt_address()->address;
-        char device_name[18];
-        sprintf(device_name, "BLE-Sensor-%2.2x%2.2x%2.2x", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
+        char device_name[13];
+        sprintf(device_name, "BLITZ-%2.2X%2.2X%2.2X", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
 
         /* Set advertising parameters. 100ms advertisement interval.

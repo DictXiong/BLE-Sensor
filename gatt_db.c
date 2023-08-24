@@ -73,8 +73,8 @@ GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_
 	.data={0x1a,0x18,}
 };
 GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_19 ) = {
-	.len=5,
-	.data={0x20,0x23,0x08,0x06,0x01,}
+	.len=4,
+	.data={0x64,0xe6,0xf0,0x55,}
 };
 GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_18 ) = {
 	.len=5,
@@ -82,7 +82,7 @@ GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_
 };
 GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_17 ) = {
 	.len=6,
-	.data={0x42,0x4c,0x53,0x30,0x30,0x50,}
+	.data={0x42,0x4c,0x53,0x31,0x30,0x50,}
 };
 GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_16 ) = {
 	.len=5,
@@ -108,11 +108,11 @@ GATT_DATA(const struct bg_gattdb_buffer_with_len	bg_gattdb_data_attribute_field_
 	.len=5,
 	.data={0x02,0x0d,0x00,0x01,0x2a,}
 };
-uint8_t bg_gattdb_data_attribute_field_10_data[17]={0x42,0x4c,0x45,0x20,0x53,0x65,0x6e,0x73,0x6f,0x72,0x20,0x30,0x30,0x30,0x30,0x30,0x30,};
+uint8_t bg_gattdb_data_attribute_field_10_data[12]={0x42,0x6c,0x69,0x74,0x7a,0x2d,0x30,0x30,0x30,0x30,0x30,0x30,};
 GATT_DATA(const struct bg_gattdb_attribute_chrvalue	bg_gattdb_data_attribute_field_10 ) = {
 	.properties=0x02,
 	.index=3,
-	.max_len=17,
+	.max_len=12,
 	.data=bg_gattdb_data_attribute_field_10_data,
 };
 
