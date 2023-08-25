@@ -58,7 +58,7 @@ appPlugin: stack_bridge=false
   </service>
   <service advertise="false" name="Blitz Report" requirement="mandatory" sourceId="" type="primary" uuid="F120">
     <informativeText>Abstract:  This service exposes measurement data from an environmental sensor intended for sports and fitness applications. A wide range of environmental parameters is supported.  Summary:  The Environmental Sensing Service (ESS) exposes measurement data from an environmental sensor intended for sports and fitness applications. A wide range of environmental parameters is supported.  </informativeText>
-    <characteristic id="report" name="Report" sourceId="" uuid="F121">
+    <characteristic id="report" name="Report" sourceId="cn.beardic.characteristic.report" uuid="F121">
       <informativeText>Abstract:  The Floor Number characteristic describes in which floor the device is installed.  </informativeText>
       <value length="17" type="hex" variable_length="false"/>
       <properties read="true" read_requirement="optional"/>
