@@ -251,8 +251,8 @@ void appMain(gecko_configuration_t *pconfig)
         /* init device name */
         bd_addr local_addr;
         local_addr = gecko_cmd_system_get_bt_address()->address;
-        char device_name[13];
-        sprintf(device_name, "BLITZ-%2.2X%2.2X%2.2X", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
+        char device_name[17];
+        sprintf(device_name, "Blitz_LEE-%2.2X%2.2X%2.2X", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
         printLog("device name: %s\r\n", device_name);
 
@@ -261,7 +261,7 @@ void appMain(gecko_configuration_t *pconfig)
          * The next two parameters are minimum and maximum advertising interval, both in
          * units of (milliseconds * 1.6).
          * The last two parameters are duration and maxevents left as default. */
-        gecko_cmd_le_gap_set_advertise_timing(0, 2560, 3200, 0, 0);
+        gecko_cmd_le_gap_set_advertise_timing(0, 2880, 3200, 0, 0);
 
         /* Start general advertising and enable connections. */
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
