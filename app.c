@@ -20,9 +20,11 @@
  ******************************************************************************/
 
 /* Bluetooth stack headers */
+#include <stdio.h>
 #include "bg_types.h"
 #include "native_gecko.h"
 #include "gatt_db.h"
+#include "sl_sleeptimer.h"
 #include "i2cspm.h"
 #include "supply_voltage.h"
 #include "htu21d.h"
