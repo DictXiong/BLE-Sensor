@@ -9,7 +9,7 @@
     <!--Device Name-->
     <characteristic id="device_name" name="Device Name" sourceId="org.bluetooth.characteristic.gap.device_name" uuid="2A00">
       <informativeText/>
-      <value length="16" type="utf-8" variable_length="false">Blitz_LEE-000000</value>
+      <value length="13" type="utf-8" variable_length="true">BlitzLEE-0000</value>
       <properties read="true" read_requirement="optional"/>
     </characteristic>
     

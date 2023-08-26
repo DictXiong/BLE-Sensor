@@ -254,8 +254,8 @@ void appMain(gecko_configuration_t *pconfig)
         /* init device name */
         bd_addr local_addr;
         local_addr = gecko_cmd_system_get_bt_address()->address;
-        char device_name[17];
-        sprintf(device_name, "Blitz_LEE-%2.2X%2.2X%2.2X", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
+        char device_name[14];
+        sprintf(device_name, "BlitzLEE-%2.2X%2.2X", local_addr.addr[1], local_addr.addr[0]);
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
         printLog("device name: %s\r\n", device_name);
 
