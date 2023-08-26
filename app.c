@@ -48,12 +48,12 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
-uint8_t is_htu21d_online = 0;
-uint8_t is_sht4x_online = 0;
-uint8_t is_bmp280_online = 0;
-uint8_t is_gy302_online = 0;
-uint8_t is_end_of_battery = 0;
-uint8_t supply_voltage_count = 0;
+static uint8_t is_htu21d_online = 0;
+static uint8_t is_sht4x_online = 0;
+static uint8_t is_bmp280_online = 0;
+static uint8_t is_gy302_online = 0;
+static uint8_t is_end_of_battery = 0;
+static uint8_t supply_voltage_count = 0;
 
 /* report data
  * 0     0x12
@@ -66,9 +66,10 @@ uint8_t supply_voltage_count = 0;
  * 14:15 gy302 light (*1.2)
  * 16    0x23
  */
-uint8_t report_data[17];
+static uint8_t report_data[17];
 
 
+void requestData();
 void requestData() {
   printLog("----- request data -----\r\n");
   if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
@@ -79,7 +80,7 @@ void requestData() {
   if (is_gy302_online) gy302_request_measure(I2C0);
 }
 
-
+void updateData();
 void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
@@ -244,8 +245,8 @@ void appMain(gecko_configuration_t *pconfig)
         bootMessage(&(evt->data.evt_system_boot));
         printLog("boot event - starting advertising\r\n");
 
-        /* Set tx power to 0 dBm */
-        gecko_cmd_system_set_tx_power(0);
+        /* Set tx power to 6 dBm */
+        gecko_cmd_system_set_tx_power(6);
 
         /* Set adv on all 3 channels */
         gecko_cmd_le_gap_set_advertise_channel_map(0, 7);

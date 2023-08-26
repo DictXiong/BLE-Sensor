@@ -919,6 +919,8 @@
 		<configuration configurationName="GNU ARM v4.9.3 - Default">
 			<resource resourceType="PROJECT" workspacePath="/ble-sensor"/>
 		</configuration>
+		<configuration configurationName="GNU ARM v7.2.1 (512,nodbg)"/>
+		<configuration configurationName="GNU ARM v7.2.1 (352,default)"/>
 		<configuration configurationName="GNU ARM v7.2.1 - Default (no debug)"/>
 		<configuration configurationName="GNU ARM v7.2.1 - Default">
 			<resource resourceType="PROJECT" workspacePath="/ble-sensor"/>

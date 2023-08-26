@@ -98,7 +98,7 @@ static gecko_configuration_t config = {
   .pa.input = GECKO_RADIO_PA_INPUT_VBAT,               /* Configure PA input to VBAT */
 #else
   .pa.input = GECKO_RADIO_PA_INPUT_DCDC,               /* Configure PA input to DCDC */
-  .pa.pa_mode = RAIL_TX_POWER_MODE_2P4GIG_LP,          /* Use low power mode PA */
+  .pa.pa_mode = RAIL_TX_POWER_MODE_2P4GIG_HP,          /* Use low power mode PA */
 #endif // defined(FEATURE_PA_INPUT_FROM_VBAT)
   .rf.flags = APP_RF_CONFIG_ANTENNA,                 /* Enable antenna configuration. */
   .rf.antenna = APP_RF_ANTENNA,                      /* Select antenna path! */
