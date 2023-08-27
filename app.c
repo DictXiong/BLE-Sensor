@@ -19,7 +19,7 @@
  *
  ******************************************************************************/
 
-/* Bluetooth stack headers */
+/** Bluetooth stack headers **/
 #include <stdio.h>
 #include "bg_types.h"
 #include "native_gecko.h"
@@ -34,9 +34,8 @@
 
 #include "app.h"
 
-/* Print boot message */
-static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 
+/** macros **/
 /* Timer handles */
 #define TIMER_HANDLE_REQ_MEAS  (0)
 #define TIMER_HANDLE_READ_MEAS (1)
@@ -46,6 +45,8 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 #define MEAS_INTERVAL               (32768*60)
 #define READ_MEAS_DELAY             (32768/5)
 
+
+/** global variables **/
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
 static uint8_t is_htu21d_online = 0;
@@ -54,7 +55,6 @@ static uint8_t is_bmp280_online = 0;
 static uint8_t is_gy302_online = 0;
 static uint8_t is_end_of_battery = 0;
 static uint8_t supply_voltage_count = 0;
-
 /* report data
  * 0     0x12
  * 1     device_status (7: HTU21D, 6: BMP280, 5: GY302, 4: SHT4x, 0: low battery)
@@ -67,9 +67,26 @@ static uint8_t supply_voltage_count = 0;
  * 16    0x23
  */
 static uint8_t report_data[17];
+#define ADDRESS_MAP_SIZE 2
+static const uint8_t address_map_index[][3] = {
+  {0x05, 0xD1, 0x2A},
+  {0xCA, 0x88, 0xB8}
+};
+static const char *address_map_value[] = {
+  "测试型",
+  "初号机"
+};
 
 
+/** function declarations **/
+/* Print boot message */
 void requestData();
+void updateData();
+const char *get_device_name_appendix(bd_addr address);
+static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
+
+
+/** function definitions **/
 void requestData() {
   printLog("----- request data -----\r\n");
   if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
@@ -80,7 +97,6 @@ void requestData() {
   if (is_gy302_online) gy302_request_measure(I2C0);
 }
 
-void updateData();
 void updateData() {
   report_data[0] = 0x12;
   report_data[16] = 0x23;
@@ -171,6 +187,33 @@ void updateData() {
   gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, sizeof(report_data), report_data);
 }
 
+const char *get_device_name_appendix(bd_addr address) {
+  for (int i = 0; i < ADDRESS_MAP_SIZE; i++) {
+    if (memcmp(address.addr, address_map_index[i], 3) == 0) {
+      return address_map_value[i];
+    }
+  }
+  return NULL;
+}
+
+/* Print stack version and local Bluetooth address as boot message */
+static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt)
+{
+#if DEBUG_LEVEL
+  bd_addr local_addr;
+  int i;
+
+  printLog("stack version: %u.%u.%u\r\n", bootevt->major, bootevt->minor, bootevt->patch);
+  local_addr = gecko_cmd_system_get_bt_address()->address;
+
+  printLog("local BT device address: ");
+  for (i = 0; i < 5; i++) {
+    printLog("%2.2x:", local_addr.addr[5 - i]);
+  }
+  printLog("%2.2x\r\n", local_addr.addr[0]);
+#endif
+}
+
 
 /* Main application */
 void appMain(gecko_configuration_t *pconfig)
@@ -254,8 +297,13 @@ void appMain(gecko_configuration_t *pconfig)
         /* init device name */
         bd_addr local_addr;
         local_addr = gecko_cmd_system_get_bt_address()->address;
-        char device_name[14];
-        sprintf(device_name, "BlitzLEE-%2.2X%2.2X", local_addr.addr[1], local_addr.addr[0]);
+        char device_name[32] = "BlitzLEE-";
+        const char *appendix = get_device_name_appendix(local_addr);
+        if (appendix == NULL) {
+          sprintf(device_name + strlen(device_name), "%2.2X%2.2X", local_addr.addr[1], local_addr.addr[0]);
+        } else {
+          sprintf(device_name + strlen(device_name), "%s", appendix);
+        }
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
         printLog("device name: %s\r\n", device_name);
 
@@ -350,22 +398,4 @@ void appMain(gecko_configuration_t *pconfig)
         break;
     }
   }
-}
-
-/* Print stack version and local Bluetooth address as boot message */
-static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt)
-{
-#if DEBUG_LEVEL
-  bd_addr local_addr;
-  int i;
-
-  printLog("stack version: %u.%u.%u\r\n", bootevt->major, bootevt->minor, bootevt->patch);
-  local_addr = gecko_cmd_system_get_bt_address()->address;
-
-  printLog("local BT device address: ");
-  for (i = 0; i < 5; i++) {
-    printLog("%2.2x:", local_addr.addr[5 - i]);
-  }
-  printLog("%2.2x\r\n", local_addr.addr[0]);
-#endif
 }
