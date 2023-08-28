@@ -67,14 +67,16 @@ static uint8_t supply_voltage_count = 0;
  * 16    0x23
  */
 static uint8_t report_data[17];
-#define ADDRESS_MAP_SIZE 2
+#define ADDRESS_MAP_SIZE 3
 static const uint8_t address_map_index[][3] = {
   {0x05, 0xD1, 0x2A},
-  {0xCA, 0x88, 0xB8}
+  {0xCA, 0x88, 0xB8},
+  {0xd7, 0xdf, 0x16},
 };
 static const char *address_map_value[] = {
   "测试型",
-  "初号机"
+  "初号机",
+  "工具人",
 };
 
 
