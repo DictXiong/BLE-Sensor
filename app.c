@@ -49,6 +49,14 @@
 /** global variables **/
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
+/* connection control:
+ *  0: not connected
+ *  1: just connected, for 0~60s
+ *  2: connected for 60~120s, should reset connection parameters
+ *  3: connected for a long time, connection parameters have been set
+ */
+static uint8_t connection_control = 0;
+static uint8_t connection = 0;
 static uint8_t is_htu21d_online = 0;
 static uint8_t is_sht4x_online = 0;
 static uint8_t is_bmp280_online = 0;
@@ -187,6 +195,21 @@ void updateData() {
   }
   flushLog();
   gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, sizeof(report_data), report_data);
+  /* connection control */
+  switch (connection_control) {
+  case 1:
+	  connection_control = 2;
+	break;
+  case 2:
+	  connection_control = 3;
+#if DEBUG_LEVEL == 0
+	  /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
+	  gecko_cmd_le_connection_set_timing_parameters(connection, 700, 760, 10, 3200, 0, 0xFFFF);
+#endif
+    break;
+  default:
+    break;
+  }
 }
 
 const char *get_device_name_appendix(bd_addr address) {
@@ -337,18 +360,15 @@ void appMain(gecko_configuration_t *pconfig)
         * Supervision timeout: 4500 msec The value in milliseconds must be larger than
         * (1 + latency) * max_interva * 2, where max_interval is given in milliseconds
         */
-#if DEBUG_LEVEL
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
-#else
-        /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
-        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 1600, 1680, 5, 3200, 0, 0xFFFF);
-#endif
-
+        connection_control = 1;
+        connection = evt->data.evt_le_connection_opened.connection;
         break;
 
       case gecko_evt_le_connection_closed_id:
 
         printLog("connection closed, reason: 0x%2.2x\r\n", evt->data.evt_le_connection_closed.reason);
+        connection_control = 0;
 
         /* Check if need to boot to OTA DFU mode */
         if (boot_to_dfu) {
