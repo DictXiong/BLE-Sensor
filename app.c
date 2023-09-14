@@ -203,8 +203,9 @@ void updateData() {
   case 2:
 	  connection_control = 3;
 #if DEBUG_LEVEL == 0
-	  /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
-	  gecko_cmd_le_connection_set_timing_parameters(connection, 700, 760, 10, 3200, 0, 0xFFFF);
+	  /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices
+	   * 1s to 1.05s */
+	  gecko_cmd_le_connection_set_timing_parameters(connection, 800, 840, 10, 3200, 0, 0xFFFF);
 #endif
     break;
   default:
@@ -336,8 +337,9 @@ void appMain(gecko_configuration_t *pconfig)
          * The first parameter is advertising set handle
          * The next two parameters are minimum and maximum advertising interval, both in
          * units of (milliseconds * 1.6).
-         * The last two parameters are duration and maxevents left as default. */
-        gecko_cmd_le_gap_set_advertise_timing(0, 3200, 4000, 0, 0);
+         * The last two parameters are duration and maxevents left as default.
+         * 3s to 3.125s */
+        gecko_cmd_le_gap_set_advertise_timing(0, 4800, 5000, 0, 0);
 
         /* Start general advertising and enable connections. */
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
