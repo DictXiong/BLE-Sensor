@@ -19,10 +19,12 @@
  *
  ******************************************************************************/
 
-/* Bluetooth stack headers */
+/** Bluetooth stack headers **/
+#include <stdio.h>
 #include "bg_types.h"
 #include "native_gecko.h"
 #include "gatt_db.h"
+#include "sl_sleeptimer.h"
 #include "i2cspm.h"
 #include "supply_voltage.h"
 #include "htu21d.h"
@@ -32,9 +34,8 @@
 
 #include "app.h"
 
-/* Print boot message */
-static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 
+/** macros **/
 /* Timer handles */
 #define TIMER_HANDLE_REQ_MEAS  (0)
 #define TIMER_HANDLE_READ_MEAS (1)
@@ -44,29 +45,58 @@ static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
 #define MEAS_INTERVAL               (32768*60)
 #define READ_MEAS_DELAY             (32768/5)
 
+
+/** global variables **/
 /* Flag for indicating DFU Reset must be performed */
 static uint8_t boot_to_dfu = 0;
-uint8_t is_htu21d_online = 0;
-uint8_t is_sht4x_online = 0;
-uint8_t is_bmp280_online = 0;
-uint8_t is_gy302_online = 0;
-uint8_t is_end_of_battery = 0;
-uint8_t supply_voltage_count = 0;
-
+/* connection control:
+ *  0: not connected
+ *  1: just connected, for 0~60s
+ *  2: connected for 60~120s, should reset connection parameters
+ *  3: connected for a long time, connection parameters have been set
+ */
+static uint8_t connection_control = 0;
+static uint8_t connection = 0;
+static uint8_t is_htu21d_online = 0;
+static uint8_t is_sht4x_online = 0;
+static uint8_t is_bmp280_online = 0;
+static uint8_t is_gy302_online = 0;
+static uint8_t is_end_of_battery = 0;
+static uint8_t supply_voltage_count = 0;
 /* report data
  * 0     0x12
- * 1     device_status
+ * 1     device_status (7: HTU21D, 6: BMP280, 5: GY302, 4: SHT4x, 0: low battery)
  * 2:3   supply voltage (*1000)
- * 4:5   htu21d temperature (raw)
- * 6:7   htu21d humidity (raw)
+ * 4:5   htu21d/sht4x temperature (raw)
+ * 6:7   htu21d/sht4x humidity (raw)
  * 8:11  bmp280 pressure (*25600)
  * 12:13 bmp280 temperature (*100)
  * 14:15 gy302 light (*1.2)
  * 16    0x23
  */
-uint8_t report_data[17];
+static uint8_t report_data[17];
+#define ADDRESS_MAP_SIZE 3
+static const uint8_t address_map_index[][3] = {
+  {0x05, 0xD1, 0x2A},
+  {0xCA, 0x88, 0xB8},
+  {0xd7, 0xdf, 0x16},
+};
+static const char *address_map_value[] = {
+  "测试型",
+  "初号机",
+  "工具人",
+};
 
 
+/** function declarations **/
+/* Print boot message */
+void requestData();
+void updateData();
+const char *get_device_name_appendix(bd_addr address);
+static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt);
+
+
+/** function definitions **/
 void requestData() {
   printLog("----- request data -----\r\n");
   if (supply_voltage_count % MEAS_SUPPLY_VOLTAGE_EVERY == 0) {
@@ -76,7 +106,6 @@ void requestData() {
   if (is_bmp280_online) bmp280_request_measure(I2C0);
   if (is_gy302_online) gy302_request_measure(I2C0);
 }
-
 
 void updateData() {
   report_data[0] = 0x12;
@@ -166,6 +195,49 @@ void updateData() {
   }
   flushLog();
   gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, sizeof(report_data), report_data);
+  /* connection control */
+  switch (connection_control) {
+  case 1:
+	  connection_control = 2;
+	break;
+  case 2:
+	  connection_control = 3;
+#if DEBUG_LEVEL == 0
+	  /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices
+	   * 1s to 1.05s */
+	  gecko_cmd_le_connection_set_timing_parameters(connection, 800, 840, 10, 3200, 0, 0xFFFF);
+#endif
+    break;
+  default:
+    break;
+  }
+}
+
+const char *get_device_name_appendix(bd_addr address) {
+  for (int i = 0; i < ADDRESS_MAP_SIZE; i++) {
+    if (memcmp(address.addr, address_map_index[i], 3) == 0) {
+      return address_map_value[i];
+    }
+  }
+  return NULL;
+}
+
+/* Print stack version and local Bluetooth address as boot message */
+static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt)
+{
+#if DEBUG_LEVEL
+  bd_addr local_addr;
+  int i;
+
+  printLog("stack version: %u.%u.%u\r\n", bootevt->major, bootevt->minor, bootevt->patch);
+  local_addr = gecko_cmd_system_get_bt_address()->address;
+
+  printLog("local BT device address: ");
+  for (i = 0; i < 5; i++) {
+    printLog("%2.2x:", local_addr.addr[5 - i]);
+  }
+  printLog("%2.2x\r\n", local_addr.addr[0]);
+#endif
 }
 
 
@@ -178,7 +250,7 @@ void appMain(gecko_configuration_t *pconfig)
 
   /* Initialize debug prints. Note: debug prints are off by default. See DEBUG_LEVEL in app.h */
   initLog();
-  printLog("------- boot -------");
+  printLog("------- boot -------\r\n");
 
   /* Initialize stack */
   gecko_init(pconfig);
@@ -242,8 +314,8 @@ void appMain(gecko_configuration_t *pconfig)
         bootMessage(&(evt->data.evt_system_boot));
         printLog("boot event - starting advertising\r\n");
 
-        /* Set tx power to 0 dBm */
-        gecko_cmd_system_set_tx_power(0);
+        /* Set tx power to 6 dBm */
+        gecko_cmd_system_set_tx_power(6);
 
         /* Set adv on all 3 channels */
         gecko_cmd_le_gap_set_advertise_channel_map(0, 7);
@@ -251,16 +323,23 @@ void appMain(gecko_configuration_t *pconfig)
         /* init device name */
         bd_addr local_addr;
         local_addr = gecko_cmd_system_get_bt_address()->address;
-        char device_name[18];
-        sprintf(device_name, "BLE-Sensor-%2.2x%2.2x%2.2x", local_addr.addr[2], local_addr.addr[1], local_addr.addr[0]);
+        char device_name[32] = "BlitzLEE-";
+        const char *appendix = get_device_name_appendix(local_addr);
+        if (appendix == NULL) {
+          sprintf(device_name + strlen(device_name), "%2.2X%2.2X", local_addr.addr[1], local_addr.addr[0]);
+        } else {
+          sprintf(device_name + strlen(device_name), "%s", appendix);
+        }
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
+        printLog("device name: %s\r\n", device_name);
 
         /* Set advertising parameters. 100ms advertisement interval.
          * The first parameter is advertising set handle
          * The next two parameters are minimum and maximum advertising interval, both in
          * units of (milliseconds * 1.6).
-         * The last two parameters are duration and maxevents left as default. */
-        gecko_cmd_le_gap_set_advertise_timing(0, 3200, 3280, 0, 0);
+         * The last two parameters are duration and maxevents left as default.
+         * 3s to 3.125s */
+        gecko_cmd_le_gap_set_advertise_timing(0, 4800, 5000, 0, 0);
 
         /* Start general advertising and enable connections. */
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
@@ -283,18 +362,15 @@ void appMain(gecko_configuration_t *pconfig)
         * Supervision timeout: 4500 msec The value in milliseconds must be larger than
         * (1 + latency) * max_interva * 2, where max_interval is given in milliseconds
         */
-#if DEBUG_LEVEL
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
-#else
-        /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices */
-        gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 1600, 1680, 5, 3200, 0, 0xFFFF);
-#endif
-
+        connection_control = 1;
+        connection = evt->data.evt_le_connection_opened.connection;
         break;
 
       case gecko_evt_le_connection_closed_id:
 
         printLog("connection closed, reason: 0x%2.2x\r\n", evt->data.evt_le_connection_closed.reason);
+        connection_control = 0;
 
         /* Check if need to boot to OTA DFU mode */
         if (boot_to_dfu) {
@@ -346,22 +422,4 @@ void appMain(gecko_configuration_t *pconfig)
         break;
     }
   }
-}
-
-/* Print stack version and local Bluetooth address as boot message */
-static void bootMessage(struct gecko_msg_system_boot_evt_t *bootevt)
-{
-#if DEBUG_LEVEL
-  bd_addr local_addr;
-  int i;
-
-  printLog("stack version: %u.%u.%u\r\n", bootevt->major, bootevt->minor, bootevt->patch);
-  local_addr = gecko_cmd_system_get_bt_address()->address;
-
-  printLog("local BT device address: ");
-  for (i = 0; i < 5; i++) {
-    printLog("%2.2x:", local_addr.addr[5 - i]);
-  }
-  printLog("%2.2x\r\n", local_addr.addr[0]);
-#endif
 }

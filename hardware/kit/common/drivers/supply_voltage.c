@@ -1,16 +1,11 @@
 /*
  * supply_voltage.c
  *
- *  Created on: 2023Äê8ÔÂ7ÈÕ
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
-#include <stddef.h>
-#include "i2cspm.h"  // to get uint16_t defined
 #include "supply_voltage.h"
-#include "em_device.h"
-#include "em_cmu.h"
-#include "em_emu.h"
+#include "em_cmu.h"  // clocks
 #include "em_iadc.h"
 
 

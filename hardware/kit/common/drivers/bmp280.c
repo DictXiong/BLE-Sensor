@@ -1,12 +1,8 @@
 /*
  * bmp280.c
  *
- *  Created on: 2023Äê8ÔÂ5ÈÕ
- *      Author: me
+ *      Author: me@beardic.cn
  */
-#include <stddef.h>
-#include "i2cspm.h"
-
 #include "bmp280.h"
 
 /*! @name I2C addresses */

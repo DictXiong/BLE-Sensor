@@ -1,14 +1,10 @@
 /*
  * gy302.c
  *
- *  Created on: 2023Äê8ÔÂ5ÈÕ
- *      Author: me
+ *      Author: me@beardic.cn
  */
-#include <stddef.h>
-#include "i2cspm.h"
 
 #include "gy302.h"
-
 
 #define GY302_ADDRESS                  0x46
 #define GY302_COMMAND_POWER_DOWN       0x00

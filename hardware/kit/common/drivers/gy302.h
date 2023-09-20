@@ -1,12 +1,13 @@
 /*
  * gy302.h
  *
- *  Created on:
- *      Author: me
+ *      Author: me@beardic.cn
  */
 
 #ifndef HARDWARE_KIT_COMMON_DRIVERS_GY302_H_
 #define HARDWARE_KIT_COMMON_DRIVERS_GY302_H_
+
+#include "i2cspm.h"
 
 uint8_t gy302_is_online(I2C_TypeDef *i2c);
 int8_t gy302_command(I2C_TypeDef *i2c, uint8_t command);

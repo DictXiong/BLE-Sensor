@@ -42,6 +42,5 @@
 
 /* Main application */
 void appMain(gecko_configuration_t *pconfig);
-void updateData();
 
 #endif
