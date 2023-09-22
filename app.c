@@ -222,17 +222,18 @@ void updateData() {
   switch (adv_control) {
   case 1:
     adv_control = 2;
+#if DEBUG_LEVEL == 0
+    /* 1s */
+    gecko_cmd_le_gap_set_advertise_timing(0, 1600, 1600, 0, 0);
+    gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
+#endif
     break;
   case 2:
     adv_control = 3;
 #if DEBUG_LEVEL == 0
-    /* Set advertising parameters.
-      * The first parameter is advertising set handle
-      * The next two parameters are minimum and maximum advertising interval, both in
-      * units of (milliseconds * 1.6).
-      * The last two parameters are duration and maxevents left as default.
-      * 3s to 3.125s */
+    /* 3s to 3.125s */
     gecko_cmd_le_gap_set_advertise_timing(0, 4800, 5000, 0, 0);
+    gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
 #endif
     break;
   default:
@@ -360,9 +361,8 @@ void appMain(gecko_configuration_t *pconfig)
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
         printLog("device name: %s\r\n", device_name);
 
-        /* 0.3s to 0.3125s */
-        gecko_cmd_le_gap_set_advertise_timing(0, 480, 500, 0, 0);
-        /* Start general advertising and enable connections. */
+        /* 100ms */
+        gecko_cmd_le_gap_set_advertise_timing(0, 160, 160, 0, 0);
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
         adv_control = 1;
 
@@ -400,9 +400,8 @@ void appMain(gecko_configuration_t *pconfig)
           /* Enter to OTA DFU mode */
           gecko_cmd_system_reset(2);
         } else {
-          /* 0.3s to 0.3125s */
-          gecko_cmd_le_gap_set_advertise_timing(0, 480, 500, 0, 0);
-          /* Restart advertising after client has disconnected */
+          /* 100ms */
+          gecko_cmd_le_gap_set_advertise_timing(0, 160, 160, 0, 0);
           gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
           adv_control = 1;
         }
