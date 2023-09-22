@@ -56,6 +56,13 @@ static uint8_t boot_to_dfu = 0;
  *  3: connected for a long time, connection parameters have been set
  */
 static uint8_t connection_control = 0;
+/* adv control:
+  *  0: not advertising
+  *  1: started advertising for 0~60s
+  *  2: advertising for 60~120s, should reset advertising parameters
+  *  3: advertising for a long time, advertising parameters have been set
+  */
+static uint8_t adv_control = 0;
 static uint8_t connection = 0;
 static uint8_t is_htu21d_online = 0;
 static uint8_t is_sht4x_online = 0;
@@ -199,13 +206,33 @@ void updateData() {
   switch (connection_control) {
   case 1:
 	  connection_control = 2;
-	break;
+	  break;
   case 2:
 	  connection_control = 3;
 #if DEBUG_LEVEL == 0
 	  /* see: https://docs.silabs.com/bluetooth/3.2/general/system-and-performance/optimizing-current-consumption-in-bluetooth-low-energy-devices
 	   * 1s to 1.05s */
 	  gecko_cmd_le_connection_set_timing_parameters(connection, 800, 840, 10, 3200, 0, 0xFFFF);
+#endif
+    break;
+  default:
+    break;
+  }
+  /* adv control */
+  switch (adv_control) {
+  case 1:
+    adv_control = 2;
+    break;
+  case 2:
+    adv_control = 3;
+#if DEBUG_LEVEL == 0
+    /* Set advertising parameters.
+      * The first parameter is advertising set handle
+      * The next two parameters are minimum and maximum advertising interval, both in
+      * units of (milliseconds * 1.6).
+      * The last two parameters are duration and maxevents left as default.
+      * 3s to 3.125s */
+    gecko_cmd_le_gap_set_advertise_timing(0, 4800, 5000, 0, 0);
 #endif
     break;
   default:
@@ -333,16 +360,11 @@ void appMain(gecko_configuration_t *pconfig)
         gecko_cmd_gatt_server_write_attribute_value(gattdb_device_name, 0, strlen(device_name), (uint8_t *)device_name);
         printLog("device name: %s\r\n", device_name);
 
-        /* Set advertising parameters. 100ms advertisement interval.
-         * The first parameter is advertising set handle
-         * The next two parameters are minimum and maximum advertising interval, both in
-         * units of (milliseconds * 1.6).
-         * The last two parameters are duration and maxevents left as default.
-         * 3s to 3.125s */
-        gecko_cmd_le_gap_set_advertise_timing(0, 4800, 5000, 0, 0);
-
+        /* 0.3s to 0.3125s */
+        gecko_cmd_le_gap_set_advertise_timing(0, 480, 500, 0, 0);
         /* Start general advertising and enable connections. */
         gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
+        adv_control = 1;
 
         /* start measurement timer */
 #if DEBUG_LEVEL
@@ -363,6 +385,7 @@ void appMain(gecko_configuration_t *pconfig)
         * (1 + latency) * max_interva * 2, where max_interval is given in milliseconds
         */
         gecko_cmd_le_connection_set_timing_parameters(evt->data.evt_le_connection_opened.connection, 160, 160, 5, 450, 0, 0xFFFF);
+        adv_control = 0;
         connection_control = 1;
         connection = evt->data.evt_le_connection_opened.connection;
         break;
@@ -377,8 +400,11 @@ void appMain(gecko_configuration_t *pconfig)
           /* Enter to OTA DFU mode */
           gecko_cmd_system_reset(2);
         } else {
+          /* 0.3s to 0.3125s */
+          gecko_cmd_le_gap_set_advertise_timing(0, 480, 500, 0, 0);
           /* Restart advertising after client has disconnected */
           gecko_cmd_le_gap_start_advertising(0, le_gap_general_discoverable, le_gap_connectable_scannable);
+          adv_control = 1;
         }
         break;
 
