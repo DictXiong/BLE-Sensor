@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "sht4x.h": "c"
-    }
+    },
+    "editor.tabSize": 2
 }

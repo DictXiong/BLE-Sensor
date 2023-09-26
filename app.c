@@ -27,6 +27,7 @@
 #include "sl_sleeptimer.h"
 #include "i2cspm.h"
 #include "supply_voltage.h"
+#include "mcs_ring_store.h"
 #include "htu21d.h"
 #include "sht4x.h"
 #include "bmp280.h"
@@ -42,6 +43,7 @@
 
 /* Timings */
 #define MEAS_SUPPLY_VOLTAGE_EVERY   (10)
+#define STORE_MEAS_EVERY            (10)
 #define MEAS_INTERVAL               (32768*60)
 #define READ_MEAS_DELAY             (32768/5)
 
@@ -202,6 +204,10 @@ void updateData() {
   }
   flushLog();
   gecko_cmd_gatt_server_write_attribute_value(gattdb_report, 0, sizeof(report_data), report_data);
+  /* store data */
+  if (supply_voltage_count % STORE_MEAS_EVERY == 0) {
+    mcs_ring_append_with_time(report_data + 1);
+  }
   /* connection control */
   switch (connection_control) {
   case 1:
@@ -315,6 +321,9 @@ void appMain(gecko_configuration_t *pconfig)
   is_gy302_online = gy302_is_online(I2C0);
   printLog("gy302 is online: %d\r\n", is_gy302_online);
   flushLog();
+
+  /* init mcs ring store */
+  msc_ring_init(sizeof(report_data) - 2 + 4);
 
   /* clear report buffer */
   memset(report_data, 0, sizeof(report_data));
